@@ -1,31 +1,50 @@
-## Alarm Clock
-Custom component adding phone-like recurring alarm clocks to the Home Assistant
+# Alarm Clock (Будильник)
 
-### Features
+Пользовательский компонент для Home Assistant, добавляющий будильники с повторением, аналогичные тем, что используются в телефонах.
 
-* Multiple Alarms
-* Weekday selector
-* Ability to temporarily disable Alarms (e.g. vacation)
-* Verbose state, see below
+## Возможности
 
-### Installation
+* Несколько будильников
+* Выбор дней недели
+* Возможность временно отключать будильники (например, на время отпуска)
+* Детальные состояния, описанные ниже
 
-Add this repo to the HACS as Integration
+## Установка
 
-### State value
+Добавьте этот репозиторий в HACS как интеграцию.
 
-State sensor exposes the following values when alarm time is reached:
+## Состояния сенсора
 
-```
-     -30m     -20m     -10m     0m       +10m     +20m     +30m
+Сенсор состояния отображает следующие значения при достижении времени будильника:
+
+-30 мин -20 мин -10 мин 0 мин +10 мин +20 мин +30 мин
 -----|--------|--------|--------|--------|--------|--------|-----
- off  minus_30 minus_20 minus_10    on    plus_10  plus_20   off
-```
+выкл minus_30 minus_20 minus_10 вкл plus_10 plus_20 выкл
 
-The value can be used in Automations to trigger the scenes, play music, etc.
 
-### Screenshots
+Эти значения можно использовать в автоматизациях для запуска сценариев, воспроизведения музыки и т.д.
+
+## Скриншоты
 
 <img width="429" alt="Screenshot 2021-10-31 at 09 20 01" src="https://user-images.githubusercontent.com/159124/139574325-837db96c-6658-4db8-a0f0-758d95231d62.png">
 
 <img width="1021" alt="Screenshot 2021-10-31 at 09 20 22" src="https://user-images.githubusercontent.com/159124/139574331-e91f2b73-8c6a-4500-bc20-13d017189385.png">
+
+## Пример автоматизации
+
+Вот пример автоматизации для постепенного включения света за 20 минут до будильника:
+
+```yaml
+automation:
+  - alias: "Плавное пробуждение"
+    trigger:
+      - platform: state
+        entity_id: sensor.alarm_clock_state
+        to: "minus_20"
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: light.bedroom_lamp
+        data:
+          brightness: 50
+          transition: 60
