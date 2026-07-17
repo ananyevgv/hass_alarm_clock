@@ -1,4 +1,3 @@
-from os import stat
 from .constants import DOMAIN, PLATFORMS
 
 
@@ -31,6 +30,13 @@ class Coordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=10)
         )
         self._weekday_map = {idx: value for idx, value in enumerate(WEEKDAYS)}
+        self._default_data = {
+            "id": entry.entry_id,
+            "name": entry.title,
+            "minutes": 0,
+            "next": None,
+            "state": "off"
+        }
 
     @property
     def config(self):
@@ -48,19 +54,30 @@ class Coordinator(DataUpdateCoordinator):
 
     def _before_after(self, now):
         tm = dt.parse_time(self.config["time"])
+        if tm is None:
+            return None, None
         today = date.today()
-        dates = [datetime.combine(today, tm)]
+        # Создаем datetime с учетом часового пояса
+        alarm_datetime = datetime.combine(today, tm)
+        # Добавляем часовой пояс
+        alarm_datetime = dt.as_local(alarm_datetime)
+        
+        dates = [alarm_datetime]
         for i in range(1, 8):
-            dates.append(datetime.combine(today - timedelta(days=i), tm))
-            dates.append(datetime.combine(today + timedelta(days=i), tm))
+            dates.append(dt.as_local(datetime.combine(today - timedelta(days=i), tm)))
+            dates.append(dt.as_local(datetime.combine(today + timedelta(days=i), tm)))
         dates_selected = list(
             sorted(filter(lambda x: self.config[self._weekday_map[x.weekday()]], dates)))
+        if not dates_selected:
+            return None, None
         for i in range(1, len(dates_selected)):
             if dates_selected[i-1] <= now < dates_selected[i]:
                 return dates_selected[i-1], dates_selected[i]
         return None, None
 
     def _state_intervals(self, from_date, to_date, intervals):
+        if from_date is None or to_date is None:
+            return None, None
         delta_mins = int((to_date - from_date).total_seconds() / 60)
         if delta_mins > intervals[0]:
             return None, None
@@ -70,20 +87,24 @@ class Coordinator(DataUpdateCoordinator):
         return None, None
 
     async def _update(self):
-        now = datetime.now()
+        now = dt.now()  # ← timezone-aware текущее время
         intervals = [30, 20, 10, 0]
         before, after = self._before_after(now)
+        
+        if before is None or after is None:
+            return self._default_data
+            
         _LOGGER.debug(f"Next dates: {before}, {after} - {self.config}")
         before_start, before_end = self._state_intervals(
             now, after, intervals)
         after_start, after_end = self._state_intervals(before, now, intervals)
         state = "off"
-        if after_start:
+        if after_start is not None:
             if after_end == 0:
                 state = "on"
             else:
                 state = f"plus_{after_end}"
-        elif before_start:
+        elif before_start is not None:
             state = f"minus_{before_start}"
         _LOGGER.debug(
             f"Next dates: {before}, {after} :: {state} [{before_start}-{before_end}]::[{after_start}-{after_end}] - {self.config}")
@@ -91,7 +112,7 @@ class Coordinator(DataUpdateCoordinator):
             "id": self.entry.entry_id,
             "name": self.entry.title,
             "minutes": int((after - now).total_seconds() / 60),
-            "next": after,
+            "next": after,  # Теперь timezone-aware datetime
             "state": state if self.is_enabled else "off"
         }
 
@@ -101,28 +122,21 @@ async def async_setup_entry(hass, entry):
     coordinator = Coordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator
-    # entry.async_on_unload(entry.add_update_listener(update_listener))
 
-    # 🔧 ИСПРАВЛЕННАЯ СТРОКА - теперь используется новый метод
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
 async def async_unload_entry(hass, entry):
     _LOGGER.debug(f"async_unload_entry: {entry}")
-    # await hass.data[DOMAIN][entry.entry_id].unload()
     for p in PLATFORMS:
         await hass.config_entries.async_forward_entry_unload(entry, p)
     hass.data[DOMAIN].pop(entry.entry_id)
     return True
 
-# async def update_listener(hass, entry):
-#     _LOGGER.debug(f"update_listener: {entry}")
-
 
 async def async_setup(hass, config) -> bool:
     hass.data[DOMAIN] = dict()
-
     return True
 
 
@@ -160,6 +174,10 @@ class AlarmClockEntity(CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {("id", self.data["id"])},
+            "identifiers": {(DOMAIN, self.data["id"])},
             "name": self.get_name,
+            "manufacturer": "Custom Integration",
+            "model": "Alarm Clock",
+            "sw_version": "0.0.1",
+            "entry_type": "service",
         }

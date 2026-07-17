@@ -21,10 +21,11 @@ class ActiveSwitch(CoordinatorEntity, SwitchEntity):
 
     def __init__(self, coordinator):
         super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.data['id']}_active"
-        self._attr_name = f"{coordinator.data['name']} Active"
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_active"
+        self._attr_name = f"{coordinator.entry.title} Active"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_icon = "mdi:alarm"
+        self._attr_should_poll = False
 
     @property
     def is_on(self):
@@ -35,6 +36,11 @@ class ActiveSwitch(CoordinatorEntity, SwitchEntity):
     def icon(self):
         """Return the icon to use in the frontend."""
         return "mdi:alarm" if self.is_on else "mdi:alarm-off"
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.data is not None
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
