@@ -103,9 +103,8 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN][entry.entry_id] = coordinator
     # entry.async_on_unload(entry.add_update_listener(update_listener))
 
-    for p in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, p))
+    # 🔧 ИСПРАВЛЕННАЯ СТРОКА - теперь используется новый метод
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
