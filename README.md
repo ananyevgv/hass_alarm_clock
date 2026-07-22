@@ -104,9 +104,9 @@ alarm_clock:
       enabled: true
 ```
 
-### 🎯 Примеры автоматизаций
+## 🎯 Примеры автоматизаций
 
-## Плавное пробуждение со светом
+### Плавное пробуждение со светом
 
 За 20 минут до будильника начинаем медленно увеличивать яркость света:
 
@@ -126,7 +126,7 @@ automation:
           transition: 60
 ```
 
-## Полное пробуждение (свет + музыка)
+### Полное пробуждение (свет + музыка)
 
 ```yaml
 automation:
@@ -146,5 +146,22 @@ automation:
           entity_id: media_player.bedroom_speaker
         data:
           media_content_id: "https://example.com/morning_playlist.m3u"
+```
+---
+## 🤝 Вклад в развитие
+
+- Форкните репозиторий
+- Создайте ветку для вашей фичи (git checkout -b feature/amazing-feature)
+- Зафиксируйте изменения (git commit -m 'Add some amazing feature')
+- Отправьте в ваш форк (git push origin feature/amazing-feature)
+- Откройте Pull Request
+
+---
+
+## 📜 Лицензия
+
+MIT License — свободное использование, модификация и распространение.
+Если проект оказался полезным, пожалуйста, поставьте ⭐ звезду репозиторию!
+
           media_content_type: "playlist"
 ```
