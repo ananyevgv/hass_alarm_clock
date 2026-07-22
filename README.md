@@ -1,51 +1,80 @@
-# Alarm Clock (Будильник)
 
-Пользовательский компонент для Home Assistant, добавляющий будильники с повторением, аналогичные тем, что используются в телефонах.
+| Состояние | Значение |
+|-----------|----------|
+| `off` | Будильник не активен |
+| `minus_30` | За 30 минут до будильника |
+| `minus_20` | За 20 минут до будильника |
+| `minus_10` | За 10 минут до будильника |
+| `on` | Время будильника наступило |
+| `plus_10` | Через 10 минут после будильника |
+| `plus_20` | Через 20 минут после будильника |
+| `plus_30` | Через 30 минут после будильника |
 
-## Возможности
+---
 
-* Несколько будильников
-* Выбор дней недели
-* Возможность временно отключать будильники (например, на время отпуска)
-* Детальные состояния, описанные ниже
+## 📸 Превью
 
-## Установка
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <img src="https://user-images.githubusercontent.com/159124/139574325-837db96c-6658-4db8-a0f0-758d95231d62.png" style="width: 430px; height: auto; border-radius: 8px;" />
+  <img src="https://user-images.githubusercontent.com/159124/139574331-e91f2b73-8c6a-4500-bc20-13d017189385.png" style="width: 430px; height: auto; border-radius: 8px;" />
+</div>
 
-Добавьте этот репозиторий в HACS как интеграцию.
+---
 
-## Состояния сенсора
+## 📦 Установка
 
-Сенсор состояния отображает следующие значения при достижении времени будильника:
+### Способ 1 — HACS (рекомендуется)
 
-```
-     -30m     -20m     -10m     0m       +10m     +20m     +30m
------|--------|--------|--------|--------|--------|--------|-----
- off  minus_30 minus_20 minus_10    on    plus_10  plus_20   off
-```
+**Шаг 1:** Добавьте пользовательский репозиторий в HACS:
 
-Эти значения можно использовать в автоматизациях для запуска сценариев, воспроизведения музыки и т.д.
+[![Открыть репозиторий в HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ananyevgv&repository=alarm-clock&category=integration)
 
-## Скриншоты
+> Если кнопка не работает, добавьте вручную:
+> **HACS → Интеграции → ⋮ → Пользовательские репозитории**
+> → URL: `https://github.com/ananyevgv/alarm-clock` → Тип: **Интеграция** → Добавить
 
-<img width="429" alt="Screenshot 2021-10-31 at 09 20 01" src="https://user-images.githubusercontent.com/159124/139574325-837db96c-6658-4db8-a0f0-758d95231d62.png">
+**Шаг 2:** Найдите **Alarm Clock** → **Установить**
 
-<img width="1021" alt="Screenshot 2021-10-31 at 09 20 22" src="https://user-images.githubusercontent.com/159124/139574331-e91f2b73-8c6a-4500-bc20-13d017189385.png">
+**Шаг 3:** Перезапустите Home Assistant
 
-## Пример автоматизации
+---
 
-Вот пример автоматизации для постепенного включения света за 20 минут до будильника:
+### Способ 2 — Ручная установка
+
+1. Скачайте [последний релиз](https://github.com/ananyevgv/alarm-clock/releases/latest)
+2. Скопируйте папку `alarm_clock` в `/config/custom_components/`
+3. Перезапустите Home Assistant
+
+---
+
+## 🚀 Настройка
+
+### Через интерфейс (UI)
+
+1. Перейдите в **Настройки → Устройства и сервисы**
+2. Нажмите **➕ Добавить интеграцию**
+3. Найдите **Alarm Clock**
+4. Следуйте инструкциям мастера настройки
+
+### Вручную (configuration.yaml)
 
 ```yaml
-automation:
-  - alias: "Плавное пробуждение"
-    trigger:
-      - platform: state
-        entity_id: sensor.alarm_clock_state
-        to: "minus_20"
-    action:
-      - service: light.turn_on
-        target:
-          entity_id: light.bedroom_lamp
-        data:
-          brightness: 50
-          transition: 60
+# configuration.yaml
+alarm_clock:
+  alarms:
+    - name: "Утренний"
+      time: "07:00"
+      days:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+      enabled: true
+    - name: "Выходной"
+      time: "09:30"
+      days:
+        - sat
+        - sun
+      enabled: true
+
