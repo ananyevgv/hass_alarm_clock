@@ -103,3 +103,45 @@ alarm_clock:
         - sun
       enabled: true
 
+### 🎯 Примеры автоматизаций
+
+## Плавное пробуждение со светом
+
+За 20 минут до будильника начинаем медленно увеличивать яркость света:
+
+```yaml
+automation:
+  - alias: "🌅 Плавное пробуждение"
+    trigger:
+      - platform: state
+        entity_id: sensor.alarm_clock_state
+        to: "minus_20"
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: light.bedroom_lamp
+        data:
+          brightness: 50
+          transition: 60
+
+## Полное пробуждение (свет + музыка)
+
+```yaml
+automation:
+  - alias: "🎵 Полное пробуждение"
+    trigger:
+      - platform: state
+        entity_id: sensor.alarm_clock_state
+        to: "on"
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: light.bedroom_lamp
+        data:
+          brightness: 255
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.bedroom_speaker
+        data:
+          media_content_id: "https://example.com/morning_playlist.m3u"
+          media_content_type: "playlist"
