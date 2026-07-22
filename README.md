@@ -102,6 +102,7 @@ alarm_clock:
         - sat
         - sun
       enabled: true
+```
 
 ### 🎯 Примеры автоматизаций
 
@@ -123,6 +124,7 @@ automation:
         data:
           brightness: 50
           transition: 60
+```
 
 ## Полное пробуждение (свет + музыка)
 
@@ -145,3 +147,4 @@ automation:
         data:
           media_content_id: "https://example.com/morning_playlist.m3u"
           media_content_type: "playlist"
+```
